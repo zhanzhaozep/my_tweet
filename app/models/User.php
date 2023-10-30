@@ -20,31 +20,50 @@ class User extends Model
         }
     }
 
+    /**
+     * ユーザ認証（Authorize)
+     * @param string $email
+     * @param string $password
+     * @return array $user
+     */
     public function auth($email, $password)
     {
+        //検索したEmailのユーザがいれば
         if ($user = $this->findByEmail($email)) {
+            //ユーザのパスワードを Hashでチェック
             if (password_verify($password, $user['password'])) {
                 return $user;
             }
         }
     }
 
+    /**
+     * Emailでユーザ検索
+     * @param string $email
+     * @return array $user
+     */
     public function findByEmail($email)
     {
+        // Emailでユーザ検索するSQL
         $sql = "SELECT * FROM users WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+        //MySQLサーバに実行
         $stmt->execute();
+        //ユーザデータを1件取得
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         return $user;
     }
 
     public function insert($data)
     {
+        //パスワードをHash化
         $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+        //usersにデータを挿入するSQL
         $sql = "INSERT INTO users (name, email, password)
                 VALUES (:name, :email, :password)";
         $stmt = $this->pdo->prepare($sql);
+        //MySQLに実行
         return $stmt->execute($data);
     }
 
